@@ -1,4 +1,4 @@
-(ns task.functions)
+(ns task.operators)
 
 (defmulti evaluate-simple-expression first)
 

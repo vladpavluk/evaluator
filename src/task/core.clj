@@ -1,6 +1,7 @@
 (ns task.core
   (:require [clojure.walk :as walk]
-            [task.functions :as functions]))
+            [task.operators :as operators]
+            [task.optimizers :as optimizers]))
 
 (defn- simple-form? [form]
   (when (list? form)
@@ -25,17 +26,27 @@
     list operator
     (map (partial extract-value vars) args)))
 
+(defn optimize
+  [form]
+  (walk/postwalk
+    (fn [sub-form]
+      (if (list? sub-form)
+        (optimizers/optimize-simple-expression sub-form)
+        sub-form))
+    form))
+
 (defn evaluate
   "Passed a form, evaluates it and returns value.
   Parameters:
   - environment - a map of keyword to value, where keyword represents variable name
   - form - a Lisp-like form to evaluate"
   [vars form]
-  (walk/postwalk
-    (fn [subform]
-      (if (simple-form? subform)
-        (->> subform
-             (substitute-vars-with-vals vars)
-             (functions/evaluate-simple-expression))
-        subform))
-    form))
+  (->> form
+       (optimize)
+       (walk/postwalk
+         (fn [subform]
+           (if (simple-form? subform)
+             (->> subform
+                  (substitute-vars-with-vals vars)
+                  (operators/evaluate-simple-expression))
+             subform)))))
