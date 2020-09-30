@@ -1,7 +1,9 @@
 (ns task.core
   (:require [clojure.walk :as walk]
             [task.operators :as operators]
-            [task.optimizers :as optimizers]))
+            [task.optimizers :as optimizers]
+            [clojure.set :as set]
+            [clojure.string :as str]))
 
 (defn- simple-form? [form]
   (when (list? form)
@@ -38,15 +40,32 @@
 (defn evaluate
   "Passed a form, evaluates it and returns value.
   Parameters:
-  - environment - a map of keyword to value, where keyword represents variable name
+  - vars - a map of keyword to value, where keyword represents variable name
   - form - a Lisp-like form to evaluate"
   [vars form]
   (->> form
        (optimize)
        (walk/postwalk
-         (fn [subform]
-           (if (simple-form? subform)
-             (->> subform
+         (fn [sub-form]
+           (if (simple-form? sub-form)
+             (->> sub-form
                   (substitute-vars-with-vals vars)
                   (operators/evaluate-simple-expression))
-             subform)))))
+             sub-form)))))
+
+(defn ->javascript
+  [fn-name form]
+  (let [vars (atom #{})
+        infix-form
+        (as-> form $
+              (optimize $)
+              (walk/postwalk
+                (fn [sub-form]
+                  (when (simple-form? sub-form)
+                    (swap! vars set/union (set (filter symbol? (rest sub-form)))))
+                  (if (list? sub-form)
+                    (interpose (first sub-form) (rest sub-form))
+                    sub-form)) $))]
+    (str "function " fn-name
+         "(" (str/join "," @vars) ")"
+         " { return " (str (seq infix-form)) "; }")))

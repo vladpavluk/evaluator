@@ -4,7 +4,6 @@
 
 (defmethod evaluate-simple-expression '+
   [[_ & args]]
-  (prn "called + " args)
   (apply + args))
 
 (defmethod evaluate-simple-expression '-
