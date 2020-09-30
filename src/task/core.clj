@@ -5,7 +5,10 @@
             [clojure.set :as set]
             [clojure.string :as str]))
 
-(defn- simple-form? [form]
+(defn- simple-form?
+  "Checks if form is simple, e.g. `evaluable`,
+  by means it does not contain sub-forms"
+  [form]
   (when (list? form)
     (not (some list? (rest form)))))
 
@@ -21,6 +24,8 @@
     :else arg))
 
 (defn- substitute-vars-with-vals
+  "Forcibly replaces plain (non-nested) form values with respective variable
+  values passed in `vars`. Returns new form"
   ;free to destruct here without additional asserts, as this fn
   ;is called against satisfying parameter
   [vars [operator & args]]
@@ -29,6 +34,7 @@
     (map (partial extract-value vars) args)))
 
 (defn optimize
+  "Passed a form, returns another possibly-optimized form"
   [form]
   (walk/postwalk
     (fn [sub-form]
@@ -54,6 +60,10 @@
              sub-form)))))
 
 (defn ->javascript
+  "Passed a form and fn-name, returns a string
+  with JS representative named function.
+  All symbols inside `form`, which are not operators, are considered
+  to be formal parameters, and collected to the function signature"
   [fn-name form]
   (let [vars (atom #{})
         infix-form
