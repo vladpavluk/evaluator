@@ -1,10 +1,12 @@
 # task
 
-A Clojure library designed to ... well, that part is up to you.
+A simple machine which optimizes and evaluates lisp-like forms
 
 ## Usage
 
-FIXME
+In Clojure REPL, 
+1. Switch to namespace `(in-ns 'task.core)`, if not there
+2. Run `evaluate`, `optimize`, or `->javascript` functions as you like
 
 ## License
 
