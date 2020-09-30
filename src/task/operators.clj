@@ -27,3 +27,9 @@
   [[_ & args]]
   (assert (= (count args) 1) "This function takes 1 argument")
   (Math/abs (first args)))
+
+(defmethod evaluate-simple-expression :default
+  [[operand & _]]
+  (if operand
+    (throw (Exception. (str "Unknown operand - " operand)))
+    (throw (Exception. "Unknown form"))))

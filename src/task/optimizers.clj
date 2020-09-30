@@ -41,3 +41,7 @@
           (= (count $) 1) (first $)
           (and (= (count $) 2) (= (first $) (second $))) 1
           :else (apply list '/ $))))
+
+(defmethod optimize-simple-expression :default
+  [form]
+  form)
